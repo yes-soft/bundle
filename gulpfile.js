@@ -61,7 +61,14 @@ gulp.task('vendor', function () {
         'components/html5shiv/dist/html5shiv.min.js',
         'components/objectpath/lib/ObjectPath.js',
         'components/Respond/dest/respond.min.js',
-        'components/Respond/dest/respond.src.js'
+        'components/Respond/dest/respond.src.js',
+        'components/jquery/dist/jquery.js',
+        'components/jquery/dist/jquery.min.js',
+        'components/jquery/dist/jquery.min.map',
+        'components/jquery/dist/jquery.js',
+        'components/jquery/dist/jquery.min.js',
+        'components/jquery/dist/jquery.min.map',
+        'components/requirejs/require.js'
     ])
         .pipe(gulp.dest(dist + "vendor"));
 });
@@ -73,8 +80,14 @@ gulp.task('toaster', function () {
         .pipe(gulp.dest(dist + "vendor/toaster"));
 });
 
+gulp.task('bootstrap', function () {
+    return gulp.src([
+        'components/bootstrap/dist/**/*'
+    ])
+        .pipe(gulp.dest(dist + "vendor/bootstrap"));
+});
 
-gulp.task('default', ['scripts', 'vendor', 'toaster'],
+gulp.task('default', ['scripts', 'vendor', 'bootstrap', 'toaster'],
     function () {
         console.log('done');
     });
