@@ -371,7 +371,7 @@ angular.module('schemaForm').provider('sfBuilder', ['sfPathProvider', function(s
             // Recursive build fn
             build: function(items, path, state) {
               return build(items, decorator, templateFn, slots, path, state, lookup);
-            },
+            }
 
           };
 
