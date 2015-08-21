@@ -4,6 +4,9 @@
   "authors": [
     "vellengs <vellengs@qq.com>"
   ],
+  "main": [
+    "dist/yes.bundle.js"
+  ],
   "description": "yes bundle are dependencies for yes base",
   "license": "MIT",
   "homepage": "http://www.yes-soft.cn",
