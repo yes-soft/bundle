@@ -41,8 +41,40 @@ gulp.task('scripts', function () {
         .pipe(gulp.dest(dist));
 });
 
+gulp.task('vendor', function () {
+    return gulp.src([
+        'components/angular-bootstrap/ui-bootstrap-tpls.js',
+        'components/angular-bootstrap/ui-bootstrap-tpls.min.js',
+        'components/angular-file-upload/dist/angular-file-upload.min.js',
+        'components/angular-file-upload/dist/angular-file-upload.min.js.map',
+        'components/angular-schema-form/dist/bootstrap-decorator.js',
+        'components/angular-schema-form/dist/bootstrap-decorator.min.js',
+        'components/angular-schema-form/dist/schema-form.js',
+        'components/angular-schema-form/dist/schema-form.min.js',
+        'components/es5-shim/es5-sham.js',
+        'components/es5-shim/es5-sham.map',
+        'components/es5-shim/es5-sham.min.js',
+        'components/es5-shim/es5-shim.js',
+        'components/es5-shim/es5-shim.map',
+        'components/es5-shim/es5-shim.min.js',
+        'components/html5shiv/dist/html5shiv.js',
+        'components/html5shiv/dist/html5shiv.min.js',
+        'components/objectpath/lib/ObjectPath.js',
+        'components/Respond/dest/respond.min.js',
+        'components/Respond/dest/respond.src.js'
+    ])
+        .pipe(gulp.dest(dist + "vendor"));
+});
 
-gulp.task('default', ['scripts'],
+gulp.task('toaster', function () {
+    return gulp.src([
+        'components/angular-toastr/dist/**/*'
+    ])
+        .pipe(gulp.dest(dist + "vendor/toaster"));
+});
+
+
+gulp.task('default', ['scripts', 'vendor', 'toaster'],
     function () {
         console.log('done');
     });

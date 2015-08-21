@@ -33,6 +33,14 @@
     "oclazyload": "~1.0.4",
     "ngstorage": "~0.3.9",
     "moment": "~2.10.6",
-    "tv4": "~1.2.3"
+    "tv4": "~1.2.3",
+    "angular-toastr": "~1.4.1",
+    "angular-schema-form": "~0.8.8",
+    "objectpath": "~1.2.1",
+    "html5shiv": "~3.7.3",
+    "es5-shim": "~4.1.10",
+    "Respond": "~1.4.2",
+    "angular-file-upload": "~2.1.1",
+    "angular-bootstrap": "~0.13.3"
   }
 }
