@@ -8,6 +8,9 @@
 <body>
 <div ui-view></div>
 <script type="text/javascript" src="./../dist/yes.bundle.js"></script>
+<script type="text/javascript">
+    angular.module('app', ['ui.router','yes.utils']);
+</script>
 <script type="text/javascript" src="./../components/requirejs/require.js" data-main="scripts/start.js"></script>
 </body>
 </html>

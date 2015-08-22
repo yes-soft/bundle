@@ -5,7 +5,7 @@ require.config({
     },
     shim: {
         'app': {
-            deps: ['settings']
+            deps: ['settings', 'services/utils']
         }
     }
 });

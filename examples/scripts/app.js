@@ -1,8 +1,6 @@
-console.log("angular:",angular);
-define(['services/dependencyResolverFor', 'settings'],
-    function (dependencyResolverFor, settings) {
-        var app = angular.module('app', ['ui.router']);
-
+define(['services/resolvers', 'settings'],
+    function (resolves, settings) {
+        var app = angular.module('app');
         app.config(
             ['$controllerProvider', '$compileProvider', '$filterProvider',
                 '$provide', '$stateProvider', '$urlRouterProvider',
@@ -14,12 +12,11 @@ define(['services/dependencyResolverFor', 'settings'],
                     app.filter = $filterProvider.register;
                     app.factory = $provide.factory;
                     app.service = $provide.service;
-                    console.log(settings.routers);
                     // $ocLazyLoadProvider.config({/* debug: true */});
                     if (settings.routers) {
                         angular.forEach(settings.routers, function (route, name) {
                             if (route.dependencies) {
-                                route.resolve = dependencyResolverFor(route.dependencies);
+                                route.resolve = resolves(route.dependencies);
                             }
 
                             $stateProvider.state(name, route);
