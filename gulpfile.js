@@ -81,6 +81,13 @@ gulp.task('toaster', function () {
         .pipe(gulp.dest(dist + "vendor/toaster"));
 });
 
+gulp.task('ui-grid', function () {
+    return gulp.src([
+        'components/angular-ui-grid/**/*'
+    ])
+        .pipe(gulp.dest(dist + "vendor/angular-ui-grid"));
+});
+
 gulp.task('bootstrap', function () {
     return gulp.src([
         'components/bootstrap/dist/**/*'
@@ -88,7 +95,7 @@ gulp.task('bootstrap', function () {
         .pipe(gulp.dest(dist + "vendor/bootstrap"));
 });
 
-gulp.task('default', ['scripts', 'vendor', 'bootstrap', 'toaster'],
+gulp.task('default', ['scripts', 'vendor', 'bootstrap', 'toaster','ui-grid'],
     function () {
         console.log('done');
     });
