@@ -30,7 +30,7 @@ gulp.task('scripts', function () {
         'components/angular-translate/angular-translate.js',
         'components/angular-ui-router/release/angular-ui-router.js',
         'components/ngstorage/ngStorage.js',
-        'components/oclazyload/dist/oclazyload.js',
+        'components/oclazyload/dist/oclazyload.require.js',
         'components/moment/min/moment-with-locales.js',
         'components/angular-moment/angular-moment.js'
     ])
@@ -68,6 +68,7 @@ gulp.task('vendor', function () {
         'components/jquery/dist/jquery.js',
         'components/jquery/dist/jquery.min.js',
         'components/jquery/dist/jquery.min.map',
+        'components/tv4/tv4.js',
         'components/requirejs/require.js'
     ])
         .pipe(gulp.dest(dist + "vendor"));
