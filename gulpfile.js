@@ -106,7 +106,15 @@ gulp.task('datetimepicker', function () {
         .pipe(gulp.dest(dist + "vendor/angular-bootstrap-datetimepicker"));
 });
 
-gulp.task('default', ['scripts', 'vendor', 'bootstrap', 'toaster', 'ui-grid', 'datetimepicker'],
+gulp.task('ng-dialog', function () {
+    return gulp.src([
+        'components/ngDialog/js/**/*.js',
+        'components/ngDialog/css/**/*.css'
+    ])
+        .pipe(gulp.dest(dist + "vendor/ng-dialog"));
+});
+
+gulp.task('default', ['scripts', 'vendor', 'bootstrap', 'toaster', 'ui-grid', 'datetimepicker', 'ng-dialog'],
     function () {
         console.log('done');
     });
