@@ -53,6 +53,7 @@ gulp.task('vendor', function () {
         'components/angular-schema-form/dist/schema-form.min.js',
         'components/angular-schema-form-datepicker/bootstrap-datepicker.js',
         'components/angular-schema-form-datepicker/bootstrap-datepicker.min.js',
+        //  'components/angular-bootstrap-datetimepicker/src/js/datetimepicker.js',
         'components/es5-shim/es5-sham.js',
         'components/es5-shim/es5-sham.map',
         'components/es5-shim/es5-sham.min.js',
@@ -97,7 +98,15 @@ gulp.task('bootstrap', function () {
         .pipe(gulp.dest(dist + "vendor/bootstrap"));
 });
 
-gulp.task('default', ['scripts', 'vendor', 'bootstrap', 'toaster','ui-grid'],
+gulp.task('datetimepicker', function () {
+    return gulp.src([
+        'components/angular-bootstrap-datetimepicker/src/js/datetimepicker.js'
+    ])
+        .pipe(rename('ui.boostrap.datetimepicker.js'))
+        .pipe(gulp.dest(dist + "vendor/angular-bootstrap-datetimepicker"));
+});
+
+gulp.task('default', ['scripts', 'vendor', 'bootstrap', 'toaster', 'ui-grid', 'datetimepicker'],
     function () {
         console.log('done');
     });
