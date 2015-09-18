@@ -32,7 +32,9 @@ gulp.task('scripts', function () {
         'components/ngstorage/ngStorage.js',
         'components/oclazyload/dist/oclazyload.require.js',
         'components/moment/min/moment-with-locales.js',
-        'components/angular-moment/angular-moment.js'
+        'components/angular-moment/angular-moment.js',
+        'components/tinymce-dist/tinymce.min.js',
+        'components/angular-ui-tinymce/src/tinymce.js'
     ])
         .pipe(concat('yes.bundle.js'))
         .pipe(gulp.dest(dist))
@@ -111,6 +113,13 @@ gulp.task('select2', function () {
         'components/select2/**/*'
     ])
         .pipe(gulp.dest(dist + "vendor/select2"));
+});
+
+gulp.task('tinymce', function () {
+    return gulp.src([
+        'components/tinymce-dist/**/*'
+    ])
+        .pipe(gulp.dest(dist));
 });
 
 gulp.task('ng-dialog', function () {

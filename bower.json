@@ -50,6 +50,7 @@
     "requirejs": "~2.1.20",
     "Respond": "~1.4.2",
     "textAngular": "~1.4.3",
-    "tv4": "~1.2.3"
+    "tv4": "~1.2.3",
+    "angular-ui-tinymce": "latest"
   }
 }
