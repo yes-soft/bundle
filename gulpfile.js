@@ -55,7 +55,7 @@ gulp.task('vendor', function () {
         'components/angular-schema-form/dist/schema-form.min.js',
         'components/angular-schema-form-datepicker/bootstrap-datepicker.js',
         'components/angular-schema-form-datepicker/bootstrap-datepicker.min.js',
-        //  'components/angular-bootstrap-datetimepicker/src/js/datetimepicker.js',
+        //'components/angular-bootstrap-datetimepicker/src/js/datetimepicker.js',
         'components/es5-shim/es5-sham.js',
         'components/es5-shim/es5-sham.map',
         'components/es5-shim/es5-sham.min.js',
@@ -119,7 +119,7 @@ gulp.task('tinymce', function () {
     return gulp.src([
         'components/tinymce-dist/**/*'
     ])
-        .pipe(gulp.dest(dist));
+        .pipe(gulp.dest(dist + "vendor/tinymce"));
 });
 
 gulp.task('ng-dialog', function () {

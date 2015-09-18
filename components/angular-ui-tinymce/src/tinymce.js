@@ -9,6 +9,8 @@ angular.module('ui.tinymce', [])
     var ID_ATTR = 'ui-tinymce';
     if (uiTinymceConfig.baseUrl) {
       tinymce.baseURL = uiTinymceConfig.baseUrl;
+    }else{
+      tinymce.baseURL = "/vendor/tinymce";
     }
 
     return {
