@@ -32,9 +32,9 @@ gulp.task('scripts', function () {
         'components/ngstorage/ngStorage.js',
         'components/oclazyload/dist/oclazyload.require.js',
         'components/moment/min/moment-with-locales.js',
-        'components/angular-moment/angular-moment.js',
-        'components/tinymce-dist/tinymce.min.js',
-        'components/angular-ui-tinymce/src/tinymce.js'
+        'components/angular-moment/angular-moment.js'
+        //'components/tinymce-dist/tinymce.min.js',
+        //'components/angular-ui-tinymce/src/tinymce.js'
     ])
         .pipe(concat('yes.bundle.js'))
         .pipe(gulp.dest(dist))
@@ -130,7 +130,7 @@ gulp.task('ng-dialog', function () {
         .pipe(gulp.dest(dist + "vendor/ng-dialog"));
 });
 
-gulp.task('default', ['scripts', 'vendor', 'select2', 'bootstrap', 'toaster', 'ui-grid', 'datetimepicker', 'ng-dialog'],
+gulp.task('default', ['scripts', 'vendor', 'select2', 'bootstrap', 'toaster', 'tinymce', 'ui-grid', 'datetimepicker', 'ng-dialog'],
     function () {
         console.log('done');
     });
