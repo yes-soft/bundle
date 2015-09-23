@@ -1,5 +1,5 @@
 /*!
- * ui-grid - v3.0.6 - 2015-09-08
+ * ui-grid - v3.0.4 - 2015-08-13
  * Copyright (c) 2015 ; License: MIT 
  */
 
@@ -1744,18 +1744,6 @@ angular.module('ui.grid')
         }
       }
 
-      var clearFilters = [{
-        title: i18nService.getSafeText('gridMenu.clearAllFilters'),
-        action: function ($event) {
-          $scope.grid.clearAllFilters(undefined, true, undefined);
-        },
-        shown: function() {
-          return $scope.grid.options.enableFiltering;
-        },
-        order: 100
-      }];
-      menuItems = menuItems.concat( clearFilters );
-
       menuItems = menuItems.concat( $scope.registeredMenuItems );
 
       if ( $scope.grid.options.gridMenuShowHideColumns !== false ){
@@ -2687,7 +2675,6 @@ function ($compile, $timeout, $window, $document, gridUtil, uiGridConstants, i18
               }
               else {
                 event.preventDefault();
-                event.stopPropagation();
                 scrollEvent.fireThrottledScrollingEvent('', scrollEvent);
               }
 
@@ -6841,60 +6828,42 @@ angular.module('ui.grid')
 
     self.displayName = (colDef.displayName === undefined) ? gridUtil.readableColumnName(colDef.name) : colDef.displayName;
 
-    if (!angular.isNumber(self.width) || !self.hasCustomWidth || colDef.allowCustomWidthOverride) {
-      var colDefWidth = colDef.width;
-      var parseErrorMsg = "Cannot parse column width '" + colDefWidth + "' for column named '" + colDef.name + "'";
-      self.hasCustomWidth = false;
+    var colDefWidth = colDef.width;
+    var parseErrorMsg = "Cannot parse column width '" + colDefWidth + "' for column named '" + colDef.name + "'";
 
-      if (!angular.isString(colDefWidth) && !angular.isNumber(colDefWidth)) {
-        self.width = '*';
-      } else if (angular.isString(colDefWidth)) {
-        // See if it ends with a percent
-        if (gridUtil.endsWith(colDefWidth, '%')) {
-          // If so we should be able to parse the non-percent-sign part to a number
-          var percentStr = colDefWidth.replace(/%/g, '');
-          var percent = parseInt(percentStr, 10);
-          if (isNaN(percent)) {
-            throw new Error(parseErrorMsg);
-          }
-          self.width = colDefWidth;
-        }
-        // And see if it's a number string
-        else if (colDefWidth.match(/^(\d+)$/)) {
-          self.width = parseInt(colDefWidth.match(/^(\d+)$/)[1], 10);
-        }
-        // Otherwise it should be a string of asterisks
-        else if (colDefWidth.match(/^\*+$/)) {
-          self.width = colDefWidth;
-        }
-        // No idea, throw an Error
-        else {
+    if (!angular.isString(colDefWidth) && !angular.isNumber(colDefWidth)) {
+      self.width = '*';
+    } else if (angular.isString(colDefWidth)) {
+      // See if it ends with a percent
+      if (gridUtil.endsWith(colDefWidth, '%')) {
+        // If so we should be able to parse the non-percent-sign part to a number
+        var percentStr = colDefWidth.replace(/%/g, '');
+        var percent = parseInt(percentStr, 10);
+        if (isNaN(percent)) {
           throw new Error(parseErrorMsg);
         }
-      }
-      // Is a number, use it as the width
-      else {
         self.width = colDefWidth;
       }
+      // And see if it's a number string
+      else if (colDefWidth.match(/^(\d+)$/)) {
+        self.width = parseInt(colDefWidth.match(/^(\d+)$/)[1], 10);
+      }
+      // Otherwise it should be a string of asterisks
+      else if (colDefWidth.match(/^\*+$/)) {
+        self.width = colDefWidth;
+      }
+      // No idea, throw an Error
+      else {
+        throw new Error(parseErrorMsg);
+      }
+    }
+    // Is a number, use it as the width
+    else {
+      self.width = colDefWidth;
     }
 
-    ['minWidth', 'maxWidth'].forEach(function (name) {
-      var minOrMaxWidth = colDef[name];
-      var parseErrorMsg = "Cannot parse column " + name + " '" + minOrMaxWidth + "' for column named '" + colDef.name + "'";
-
-      if (!angular.isString(minOrMaxWidth) && !angular.isNumber(minOrMaxWidth)) {
-        //Sets default minWidth and maxWidth values
-        self[name] = ((name === 'minWidth') ? 30 : 9000);
-      } else if (angular.isString(minOrMaxWidth)) {
-        if (minOrMaxWidth.match(/^(\d+)$/)) {
-          self[name] = parseInt(minOrMaxWidth.match(/^(\d+)$/)[1], 10);
-        } else {
-          throw new Error(parseErrorMsg);
-        }
-      } else {
-        self[name] = minOrMaxWidth;
-      }
-    });
+    self.minWidth = !colDef.minWidth ? 30 : colDef.minWidth;
+    self.maxWidth = !colDef.maxWidth ? 9000 : colDef.maxWidth;
 
     //use field if it is defined; name if it is not
     self.field = (colDef.field === undefined) ? colDef.name : colDef.field;
@@ -7548,10 +7517,10 @@ angular.module('ui.grid')
        * @name flatEntityAccess
        * @propertyOf ui.grid.class:GridOptions
        * @description Set to true if your columns are all related directly to fields in a flat object structure - i.e.
-       * each of your columns associate directly with a property on each of the entities in your data array.
+       * each of your columns associate directly with a propery one each of the entities in your data array.
        *
        * In that situation we can avoid all the logic associated with complex binding to functions or to properties of sub-objects,
-       * which can provide a significant speed improvement with large data sets when filtering or sorting.
+       * which can provide a significant speed improvement with large data sets, with filtering and with sorting.
        *
        * By default false
        */
@@ -7919,7 +7888,7 @@ angular.module('ui.grid')
 
     /**
      *  @ngdoc boolean
-     *  @name hasVScrollbar
+     *  @name hasHScrollbar
      *  @propertyOf  ui.grid.class:GridRenderContainer
      *  @description flag to signal that container has a vertical scrollbar
      */
@@ -8873,93 +8842,6 @@ angular.module('ui.grid')
 
 })();
 
-(function(){
-  'use strict';
-  /**
-   * @ngdoc object
-   * @name ui.grid.class:GridRowColumn
-   * @param {GridRow} row The row for this pair
-   * @param {GridColumn} column The column for this pair
-   * @description A row and column pair that represents the intersection of these two entities.
-   * Must be instantiated as a constructor using the `new` keyword.
-   */
-  angular.module('ui.grid')
-  .factory('GridRowColumn', ['$parse', '$filter',
-    function GridRowColumnFactory($parse, $filter){
-      var GridRowColumn = function GridRowColumn(row, col) {
-        if ( !(this instanceof GridRowColumn)){
-          throw "Using GridRowColumn as a function insead of as a constructor. Must be called with `new` keyword";
-        }
-
-        /**
-         * @ngdoc object
-         * @name row
-         * @propertyOf ui.grid.class:GridRowColumn
-         * @description {@link ui.grid.class:GridRow }
-         */
-        this.row = row;
-        /**
-         * @ngdoc object
-         * @name col
-         * @propertyOf ui.grid.class:GridRowColumn
-         * @description {@link ui.grid.class:GridColumn }
-         */
-        this.col = col;
-      };
-
-      /**
-       * @ngdoc function
-       * @name getIntersectionValueRaw
-       * @methodOf ui.grid.class:GridRowColumn
-       * @description Gets the intersection of where the row and column meet.
-       * @returns {String|Number|Object} The value from the grid data that this GridRowColumn points too.
-       *          If the column has a cellFilter this will NOT return the filtered value.
-       */
-      GridRowColumn.prototype.getIntersectionValueRaw = function(){
-        var getter = $parse(this.row.getEntityQualifiedColField(this.col));
-        var context = this.row;
-        return getter(context);
-      };
-      /**
-       * @ngdoc function
-       * @name getIntersectionValueFiltered
-       * @methodOf ui.grid.class:GridRowColumn
-       * @description Gets the intersection of where the row and column meet.
-       * @returns {String|Number|Object} The value from the grid data that this GridRowColumn points too.
-       *          If the column has a cellFilter this will also apply the filter to it and return the value that the filter displays.
-       */
-      GridRowColumn.prototype.getIntersectionValueFiltered = function(){
-        var value = this.getIntersectionValueRaw();
-        if (this.col.cellFilter && this.col.cellFilter !== ''){
-          var getFilterIfExists = function(filterName){
-            try {
-              return $filter(filterName);
-            } catch (e){
-              return null;
-            }
-          };
-          var filter = getFilterIfExists(this.col.cellFilter);
-          if (filter) { // Check if this is filter name or a filter string
-            value = filter(value);
-          } else { // We have the template version of a filter so we need to parse it apart
-            // Get the filter params out using a regex
-            // Test out this regex here https://regex101.com/r/rC5eR5/2
-            var re = /([^:]*):([^:]*):?([\s\S]+)?/;
-            var matches;
-            if ((matches = re.exec(this.col.cellFilter)) !== null) {
-                // View your result using the matches-variable.
-                // eg matches[0] etc.
-                value = $filter(matches[1])(value, matches[2], matches[3]);
-            }
-          }
-        }
-        return value;
-      };
-      return GridRowColumn;
-    }
-  ]);
-})();
-
 (function () {
   angular.module('ui.grid')
     .factory('ScrollEvent', ['gridUtil', function (gridUtil) {
@@ -9241,7 +9123,6 @@ angular.module('ui.grid')
              templateGetPromises.push(gridUtil.getTemplate(col[providedType])
                 .then(
                 function (template) {
-                  if ( angular.isFunction(template) ) { template = template(); }
                   var tooltipCall = ( tooltipType === 'cellTooltip' ) ? 'col.cellTooltip(row,col)' : 'col.headerTooltip(col)';
                   if ( tooltipType && col[tooltipType] === false ){
                     template = template.replace(uiGridConstants.TOOLTIP, '');
@@ -9355,7 +9236,6 @@ angular.module('ui.grid')
     }]);
 
 })();
-
 (function() {
 
 var module = angular.module('ui.grid');
@@ -11522,7 +11402,7 @@ module.service('gridUtil', ['$log', '$window', '$document', '$http', '$templateC
     }
   };
   s.off.mousewheel = function (elm, fn) {
-    var $elm = angular.element(elm);
+    var $elm = angular.element(this);
 
     var cbs = $elm.data('mousewheel-callbacks');
     var handler = cbs[fn];
@@ -11635,8 +11515,7 @@ module.service('gridUtil', ['$log', '$window', '$document', '$http', '$templateC
       deltaX: deltaX,
       deltaY: deltaY,
       deltaFactor: lowestDelta,
-      preventDefault: function () { event.preventDefault(); },
-      stopPropagation: function () { event.stopPropagation(); }
+      preventDefault: function () { event.preventDefault(); }
     };
 
     // Clearout lowestDelta after sometime to better
@@ -11733,8 +11612,7 @@ module.filter('px', function() {
                   exporterSelectedAsCsv: 'Exportovat vybranné data do csv',
                   exporterAllAsPdf: 'Exportovat všechny data do pdf',
                   exporterVisibleAsPdf: 'Exportovat viditelné data do pdf',
-                  exporterSelectedAsPdf: 'Exportovat vybranné data do pdf',
-                clearAllFilters: 'Vyčistěte všechny filtry'
+                  exporterSelectedAsPdf: 'Exportovat vybranné data do pdf'
               },
               importer: {
                   noHeaders: 'Názvy sloupců se nepodařilo získat, obsahuje soubor záhlaví?',
@@ -11811,8 +11689,7 @@ module.filter('px', function() {
           exporterSelectedAsCsv: 'Export selected data as csv',
           exporterAllAsPdf: 'Export all data as pdf',
           exporterVisibleAsPdf: 'Export visible data as pdf',
-          exporterSelectedAsPdf: 'Export selected data as pdf',
-          clearAllFilters: 'Clear all filters'
+          exporterSelectedAsPdf: 'Export selected data as pdf'
         },
         importer: {
           noHeaders: 'Column names were unable to be derived, does the file have a header?',
@@ -11826,7 +11703,6 @@ module.filter('px', function() {
     }]);
   }]);
 })();
-
 (function () {
   angular.module('ui.grid').config(['$provide', function ($provide) {
     $provide.decorator('i18nService', ['$delegate', function ($delegate) {
@@ -11879,8 +11755,7 @@ module.filter('px', function() {
           exporterSelectedAsCsv: 'markierte Daten als CSV exportieren',
           exporterAllAsPdf: 'Alle Daten als PDF exportieren',
           exporterVisibleAsPdf: 'sichtbare Daten als PDF exportieren',
-          exporterSelectedAsPdf: 'markierte Daten als CSV exportieren',
-          clearAllFilters: 'Alle filter reinigen'
+          exporterSelectedAsPdf: 'markierte Daten als CSV exportieren'
         },
         importer: {
           noHeaders: 'Es konnten keine Spaltennamen ermittelt werden. Sind in der Datei Spaltendefinitionen enthalten?',
@@ -11977,8 +11852,7 @@ module.filter('px', function() {
           exporterSelectedAsCsv: 'Export selected data as csv',
           exporterAllAsPdf: 'Export all data as pdf',
           exporterVisibleAsPdf: 'Export visible data as pdf',
-          exporterSelectedAsPdf: 'Export selected data as pdf',
-          clearAllFilters: 'Clear all filters'
+          exporterSelectedAsPdf: 'Export selected data as pdf'
         },
         importer: {
           noHeaders: 'Column names were unable to be derived, does the file have a header?',
@@ -12068,8 +11942,7 @@ module.filter('px', function() {
           exporterSelectedAsCsv: 'Exportar selección como csv',
           exporterAllAsPdf: 'Exportar todo como pdf',
           exporterVisibleAsPdf: 'Exportar vista como pdf',
-          exporterSelectedAsPdf: 'Exportar selección como pdf',
-          clearAllFilters: 'Limpiar todos los filtros'
+          exporterSelectedAsPdf: 'Exportar selección como pdf'
         },
         importer: {
           noHeaders: 'No fue posible derivar los nombres de las columnas, ¿tiene encabezados el archivo?',
@@ -12156,8 +12029,7 @@ module.filter('px', function() {
           exporterSelectedAsCsv: 'خروجی داده\u200cهای انتخاب\u200cشده در فایل csv',
           exporterAllAsPdf: 'خروجی تمام داده\u200cها در فایل pdf',
           exporterVisibleAsPdf: 'خروجی داده\u200cهای قابل مشاهده در فایل pdf',
-          exporterSelectedAsPdf: 'خروجی داده\u200cهای انتخاب\u200cشده در فایل pdf',
-          clearAllFilters: 'پاک کردن تمام فیلتر'
+          exporterSelectedAsPdf: 'خروجی داده\u200cهای انتخاب\u200cشده در فایل pdf'
         },
         importer: {
           noHeaders: 'نام ستون قابل استخراج نیست. آیا فایل عنوان دارد؟',
@@ -12239,8 +12111,7 @@ module.filter('px', function() {
           exporterSelectedAsCsv: 'Vie valittu tieto csv-muodossa',
           exporterAllAsPdf: 'Vie tiedot pdf-muodossa',
           exporterVisibleAsPdf: 'Vie näkyvä tieto pdf-muodossa',
-          exporterSelectedAsPdf: 'Vie valittu tieto pdf-muodossa',
-          clearAllFilters: 'Puhdista kaikki suodattimet'
+          exporterSelectedAsPdf: 'Vie valittu tieto pdf-muodossa'
         },
         importer: {
           noHeaders: 'Sarakkeen nimiä ei voitu päätellä, onko tiedostossa otsikkoriviä?',
@@ -12307,8 +12178,7 @@ module.filter('px', function() {
           exporterSelectedAsCsv: 'Exporter les données sélectionnées en CSV',
           exporterAllAsPdf: 'Exporter toutes les données en PDF',
           exporterVisibleAsPdf: 'Exporter les données visibles en PDF',
-          exporterSelectedAsPdf: 'Exporter les données sélectionnées en PDF',
-          clearAllFilters: 'Nettoyez tous les filtres'
+          exporterSelectedAsPdf: 'Exporter les données sélectionnées en PDF'
         },
         importer: {
           noHeaders: 'Impossible de déterminer le nom des colonnes, le fichier possède-t-il une en-tête ?',
@@ -12337,7 +12207,6 @@ module.filter('px', function() {
     }]);
   }]);
 })();
-
 (function () {
   angular.module('ui.grid').config(['$provide', function ($provide) {
     $provide.decorator('i18nService', ['$delegate', function ($delegate) {
@@ -12385,8 +12254,7 @@ module.filter('px', function() {
           exporterSelectedAsCsv: 'Export selected data as csv',
           exporterAllAsPdf: 'Export all data as pdf',
           exporterVisibleAsPdf: 'Export visible data as pdf',
-          exporterSelectedAsPdf: 'Export selected data as pdf',
-          clearAllFilters: 'Clean all filters'
+          exporterSelectedAsPdf: 'Export selected data as pdf'
         },
         importer: {
           noHeaders: 'Column names were unable to be derived, does the file have a header?',
@@ -12400,7 +12268,6 @@ module.filter('px', function() {
     }]);
   }]);
 })();
-
 (function () {
   angular.module('ui.grid').config(['$provide', function($provide) {
     $provide.decorator('i18nService', ['$delegate', function($delegate) {
@@ -12453,8 +12320,7 @@ module.filter('px', function() {
           exporterSelectedAsCsv: 'Արտահանել ընտրված տվյալները CSV',
           exporterAllAsPdf: 'Արտահանել PDF',
           exporterVisibleAsPdf: 'Արտահանել երևացող տվյալները PDF',
-          exporterSelectedAsPdf: 'Արտահանել ընտրված տվյալները PDF',
-          clearAllFilters: 'Մաքրել բոլոր ֆիլտրերը'
+          exporterSelectedAsPdf: 'Արտահանել ընտրված տվյալները PDF'
         },
         importer: {
           noHeaders: 'Հնարավոր չեղավ որոշել սյան վերնագրերը։ Արդյո՞ք ֆայլը ունի վերնագրեր։',
@@ -12521,8 +12387,7 @@ module.filter('px', function() {
           exporterSelectedAsCsv: 'Esporta i dati selezionati in CSV',
           exporterAllAsPdf: 'Esporta tutti i dati in PDF',
           exporterVisibleAsPdf: 'Esporta i dati visibili in PDF',
-          exporterSelectedAsPdf: 'Esporta i dati selezionati in PDF',
-          clearAllFilters: 'Pulire tutti i filtri'
+          exporterSelectedAsPdf: 'Esporta i dati selezionati in PDF'
         },
         importer: {
           noHeaders: 'Impossibile reperire i nomi delle colonne, sicuro che siano indicati all\'interno del file?',
@@ -12599,8 +12464,7 @@ module.filter('px', function() {
           exporterSelectedAsCsv: '選択したデータをCSV形式でエクスポート',
           exporterAllAsPdf: 'すべてのデータをPDF形式でエクスポート',
           exporterVisibleAsPdf: '表示中のデータをPDF形式でエクスポート',
-          exporterSelectedAsPdf: '選択したデータをPDF形式でエクスポート',
-          clearAllFilters: 'すべてのフィルタを清掃してください'
+          exporterSelectedAsPdf: '選択したデータをPDF形式でエクスポート'
         },
         importer: {
           noHeaders: '列名を取得できません。ファイルにヘッダが含まれていることを確認してください。',
@@ -12671,8 +12535,7 @@ module.filter('px', function() {
           exporterSelectedAsCsv: 'csv로 선택된 데이터 내보내기',
           exporterAllAsPdf: 'pdf로 모든 데이터 내보내기',
           exporterVisibleAsPdf: 'pdf로 보이는 데이터 내보내기',
-          exporterSelectedAsPdf: 'pdf로 선택 데이터 내보내기',
-          clearAllFilters: '모든 필터를 청소'
+          exporterSelectedAsPdf: 'pdf로 선택 데이터 내보내기'
         },
         importer: {
           noHeaders: '컬럼명이 지정되어 있지 않습니다. 파일에 헤더가 명시되어 있는지 확인해 주세요.',
@@ -12743,8 +12606,7 @@ module.filter('px', function() {
           exporterSelectedAsCsv: 'Exporteer geselecteerde data als csv',
           exporterAllAsPdf: 'Exporteer alle data als pdf',
           exporterVisibleAsPdf: 'Exporteer zichtbare data als pdf',
-          exporterSelectedAsPdf: 'Exporteer geselecteerde data als pdf',
-          clearAllFilters: 'Reinig alle filters'
+          exporterSelectedAsPdf: 'Exporteer geselecteerde data als pdf'
         },
         importer: {
           noHeaders: 'Kolomnamen kunnen niet worden afgeleid. Heeft het bestand een header?',
@@ -12825,8 +12687,7 @@ module.filter('px', function() {
           exporterSelectedAsCsv: 'Exportar dados selecionados como csv',
           exporterAllAsPdf: 'Exportar todos os dados como pdf',
           exporterVisibleAsPdf: 'Exportar dados visíveis como pdf',
-          exporterSelectedAsPdf: 'Exportar dados selecionados como pdf',
-          clearAllFilters: 'Limpar todos os filtros'
+          exporterSelectedAsPdf: 'Exportar dados selecionados como pdf'
         },
         importer: {
           noHeaders: 'Nomes de colunas não puderam ser derivados. O arquivo tem um cabeçalho?',
@@ -12907,8 +12768,7 @@ module.filter('px', function() {
           exporterSelectedAsCsv: 'Exportar dados selecionados como csv',
           exporterAllAsPdf: 'Exportar todos os dados como pdf',
           exporterVisibleAsPdf: 'Exportar dados visíveis como pdf',
-          exporterSelectedAsPdf: 'Exportar dados selecionados como pdf',
-          clearAllFilters: 'Limpar todos os filtros'
+          exporterSelectedAsPdf: 'Exportar dados selecionados como pdf'
         },
         importer: {
           noHeaders: 'Nomes de colunas não puderam ser derivados. O ficheiro tem um cabeçalho?',
@@ -12931,7 +12791,7 @@ module.filter('px', function() {
           aggregate_min: 'Agr: Min',
           aggregate_avg: 'Agr: Med',
           aggregate_remove: 'Agr: Remover'
-        }
+        }        
       });
       return $delegate;
     }]);
@@ -12968,7 +12828,7 @@ module.filter('px', function() {
           remove: 'Убрать сортировку'
         },
         column: {
-          hide: 'Спрятать столбец'
+          hide: 'спрятать столбец'
         },
         aggregation: {
           count: 'всего строк: ',
@@ -12977,11 +12837,6 @@ module.filter('px', function() {
           min: 'мин: ',
           max: 'макс: '
         },
-				pinning: {
-					pinLeft: 'Закрепить слева',
-					pinRight: 'Закрепить справа',
-					unpin: 'Открепить'
-				},
         gridMenu: {
           columns: 'Столбцы:',
           importerTitle: 'Import file',
@@ -12990,8 +12845,7 @@ module.filter('px', function() {
           exporterSelectedAsCsv: 'Экспортировать выбранные данные в CSV',
           exporterAllAsPdf: 'Экспортировать всё в PDF',
           exporterVisibleAsPdf: 'Экспортировать видимые данные в PDF',
-          exporterSelectedAsPdf: 'Экспортировать выбранные данные в PDF',
-          clearAllFilters: 'Очистите все фильтры'
+          exporterSelectedAsPdf: 'Экспортировать выбранные данные в PDF'
         },
         importer: {
           noHeaders: 'Column names were unable to be derived, does the file have a header?',
@@ -13050,8 +12904,7 @@ module.filter('px', function() {
           exporterSelectedAsCsv: 'Export selected data as csv',
           exporterAllAsPdf: 'Export all data as pdf',
           exporterVisibleAsPdf: 'Export visible data as pdf',
-          exporterSelectedAsPdf: 'Export selected data as pdf',
-          clearAllFilters: 'Clear all filters'
+          exporterSelectedAsPdf: 'Export selected data as pdf'
         },
         importer: {
           noHeaders: 'Column names were unable to be derived, does the file have a header?',
@@ -13118,8 +12971,7 @@ module.filter('px', function() {
           exporterSelectedAsCsv: 'Exportera markerad data som CSV',
           exporterAllAsPdf: 'Exportera all data som PDF',
           exporterVisibleAsPdf: 'Exportera synlig data som PDF',
-          exporterSelectedAsPdf: 'Exportera markerad data som PDF',
-          clearAllFilters: 'Rengör alla filter'
+          exporterSelectedAsPdf: 'Exportera markerad data som PDF'
         },
         importer: {
           noHeaders: 'Kolumnnamn kunde inte härledas. Har filen ett sidhuvud?',
@@ -13190,8 +13042,7 @@ module.filter('px', function() {
           exporterSelectedAsCsv: 'தேர்ந்தெடுத்த தரவுகளை கோப்பாக்கு: csv',
           exporterAllAsPdf: 'எல்லா தரவுகளையும் கோப்பாக்கு: pdf',
           exporterVisibleAsPdf: 'இருக்கும் தரவுகளை கோப்பாக்கு: pdf',
-          exporterSelectedAsPdf: 'தேர்ந்தெடுத்த தரவுகளை கோப்பாக்கு: pdf',
-          clearAllFilters: 'Clear all filters'
+          exporterSelectedAsPdf: 'தேர்ந்தெடுத்த தரவுகளை கோப்பாக்கு: pdf'
         },
         importer: {
           noHeaders: 'பத்தியின் தலைப்புகளை பெற இயலவில்லை, கோப்பிற்கு தலைப்பு உள்ளதா?',
@@ -13522,15 +13373,6 @@ module.filter('px', function() {
   angular.module('ui.grid').config(['$provide', function($provide) {
     $provide.decorator('i18nService', ['$delegate', function($delegate) {
       $delegate.add('zh-cn', {
-        headerCell: {
-          aria: {
-            defaultFilterLabel: '列过滤器',
-            removeFilter: '移除过滤器',
-            columnMenuButtonLabel: '列菜单'
-          },
-          priority: '优先级:',
-          filterLabel: "列过滤器: "
-        },
         aggregate: {
           label: '行'
         },
@@ -13554,7 +13396,6 @@ module.filter('px', function() {
         sort: {
           ascending: '升序',
           descending: '降序',
-          none: '无序',
           remove: '取消排序'
         },
         column: {
@@ -13572,13 +13413,7 @@ module.filter('px', function() {
           pinRight: '右侧固定',
           unpin: '取消固定'
         },
-        columnMenu: {
-          close: '关闭'
-        },
         gridMenu: {
-          aria: {
-            buttonLabel: '表格菜单'
-          },
           columns: '列：',
           importerTitle: '导入文件',
           exporterAllAsCsv: '导出全部数据到CSV',
@@ -13586,8 +13421,7 @@ module.filter('px', function() {
           exporterSelectedAsCsv: '导出已选数据到CSV',
           exporterAllAsPdf: '导出全部数据到PDF',
           exporterVisibleAsPdf: '导出可见数据到PDF',
-          exporterSelectedAsPdf: '导出已选数据到PDF',
-          clearAllFilters: '清除所有过滤器'
+          exporterSelectedAsPdf: '导出已选数据到PDF'
         },
         importer: {
           noHeaders: '无法获取列名，确定文件包含表头？',
@@ -13597,27 +13431,8 @@ module.filter('px', function() {
           jsonNotArray: '导入的文件不是JSON数组！'
         },
         pagination: {
-          aria: {
-            pageToFirst: '第一页',
-            pageBack: '上一页',
-            pageSelected: '当前页',
-            pageForward: '下一页',
-            pageToLast: '最后一页'
-          },
           sizes: '行每页',
-          totalItems: '行',
-          through: '至',
-          of: '共'
-        },
-        grouping: {
-          group: '分组',
-          ungroup: '取消分组',
-          aggregate_count: '合计: 计数',
-          aggregate_sum: '合计: 求和',
-          aggregate_max: '合计: 最大',
-          aggregate_min: '合计: 最小',
-          aggregate_avg: '合计: 平均',
-          aggregate_remove: '合计: 移除'
+          totalItems: '行'
         }
       });
       return $delegate;
@@ -13677,8 +13492,7 @@ module.filter('px', function() {
           exporterSelectedAsCsv: '導出已選數據到CSV',
           exporterAllAsPdf: '導出全部數據到PDF',
           exporterVisibleAsPdf: '導出可見數據到PDF',
-          exporterSelectedAsPdf: '導出已選數據到PDF',
-          clearAllFilters: '清除所有过滤器'
+          exporterSelectedAsPdf: '導出已選數據到PDF'
         },
         importer: {
           noHeaders: '無法獲取列名，確定文件包含表頭？',
@@ -13800,9 +13614,86 @@ module.filter('px', function() {
     }
   });
 
+  /**
+   * @ngdoc object
+   * @name ui.grid.cellNav.object:RowCol
+   * @param {GridRow} row The row for this pair
+   * @param {GridColumn} column The column for this pair
+   * @description A row and column pair that represents the intersection of these two entities.
+   */
+  module.factory('RowColFactory', ['$parse', '$filter',
+    function($parse, $filter){
+      var RowCol = function RowCol(row, col) {
+        /**
+         * @ngdoc object
+         * @name row
+         * @propertyOf ui.grid.cellNav.object:RowCol
+         * @description {@link ui.grid.class:GridRow }
+         */
+        this.row = row;
+        /**
+         * @ngdoc object
+         * @name col
+         * @propertyOf ui.grid.cellNav.object:RowCol
+         * @description {@link ui.grid.class:GridColumn }
+         */
+        this.col = col;
+      };
 
-  module.factory('uiGridCellNavFactory', ['gridUtil', 'uiGridConstants', 'uiGridCellNavConstants', 'GridRowColumn', '$q',
-    function (gridUtil, uiGridConstants, uiGridCellNavConstants, GridRowColumn, $q) {
+      /**
+       * @ngdoc function
+       * @name getIntersectionValueRaw
+       * @methodOf ui.grid.cellNav.object:RowCol
+       * @description Gets the intersection of where the row and column meet.
+       * @returns {String|Number|Object} The value from the grid data that this RowCol points too.
+       *          If the column has a cellFilter this will NOT return the filtered value.
+       */
+      RowCol.prototype.getIntersectionValueRaw = function(){
+        var getter = $parse(this.col.field);
+        var context = this.row.entity;
+        return getter(context);
+      };
+      /**
+       * @ngdoc function
+       * @name getIntersectionValueFiltered
+       * @methodOf ui.grid.cellNav.object:RowCol
+       * @description Gets the intersection of where the row and column meet.
+       * @returns {String|Number|Object} The value from the grid data that this RowCol points too.
+       *          If the column has a cellFilter this will also apply the filter to it and return the value that the filter displays.
+       */
+      RowCol.prototype.getIntersectionValueFiltered = function(){
+        var value = this.getIntersectionValueRaw();
+        if (this.col.cellFilter && this.col.cellFilter !== ''){
+          var getFilterIfExists = function(filterName){
+            try {
+              return $filter(filterName);
+            } catch (e){
+              return null;
+            }
+          };
+          var filter = getFilterIfExists(this.col.cellFilter);
+          if (filter) { // Check if this is filter name or a filter string
+            value = filter(value);
+          } else { // We have the template version of a filter so we need to parse it apart
+            // Get the filter params out using a regex
+            // Test out this regex here https://regex101.com/r/rC5eR5/2
+            var re = /([^:]*):([^:]*):?([\s\S]+)?/;
+            var matches;
+            if ((matches = re.exec(this.col.cellFilter)) !== null) {
+                // View your result using the matches-variable.
+                // eg matches[0] etc.
+                value = $filter(matches[1])(value, matches[2], matches[3]);
+            }
+          }
+        }
+        return value;
+      };
+      return RowCol;
+    }]);
+
+
+  module.factory('uiGridCellNavFactory', ['gridUtil', 'uiGridConstants', 'uiGridCellNavConstants', 'RowColFactory', '$q',
+    function (gridUtil, uiGridConstants, uiGridCellNavConstants, RowCol, $q) {
       /**
        *  @ngdoc object
        *  @name ui.grid.cellNav.object:CellNav
@@ -13879,7 +13770,7 @@ module.filter('px', function() {
 
         var curRowIndex = 0;
         var curColIndex = 0;
-        return new GridRowColumn(focusableRows[0], focusableCols[0]); //return same row
+        return new RowCol(focusableRows[0], focusableCols[0]); //return same row
       };
 
       UiGridCellNav.prototype.getRowColLeft = function (curRow, curCol) {
@@ -13902,15 +13793,15 @@ module.filter('px', function() {
           //   return null;
           // }
           if (curRowIndex === 0) {
-            return new GridRowColumn(curRow, focusableCols[nextColIndex]); //return same row
+            return new RowCol(curRow, focusableCols[nextColIndex]); //return same row
           }
           else {
             //up one row and far right column
-            return new GridRowColumn(focusableRows[curRowIndex - 1], focusableCols[nextColIndex]);
+            return new RowCol(focusableRows[curRowIndex - 1], focusableCols[nextColIndex]);
           }
         }
         else {
-          return new GridRowColumn(curRow, focusableCols[nextColIndex]);
+          return new RowCol(curRow, focusableCols[nextColIndex]);
         }
       };
 
@@ -13930,15 +13821,15 @@ module.filter('px', function() {
 
         if (nextColIndex < curColIndex) {
           if (curRowIndex === focusableRows.length - 1) {
-            return new GridRowColumn(curRow, focusableCols[nextColIndex]); //return same row
+            return new RowCol(curRow, focusableCols[nextColIndex]); //return same row
           }
           else {
             //down one row and far left column
-            return new GridRowColumn(focusableRows[curRowIndex + 1], focusableCols[nextColIndex]);
+            return new RowCol(focusableRows[curRowIndex + 1], focusableCols[nextColIndex]);
           }
         }
         else {
-          return new GridRowColumn(curRow, focusableCols[nextColIndex]);
+          return new RowCol(curRow, focusableCols[nextColIndex]);
         }
       };
 
@@ -13954,11 +13845,11 @@ module.filter('px', function() {
         }
 
         if (curRowIndex === focusableRows.length - 1) {
-          return new GridRowColumn(curRow, focusableCols[curColIndex]); //return same row
+          return new RowCol(curRow, focusableCols[curColIndex]); //return same row
         }
         else {
           //down one row
-          return new GridRowColumn(focusableRows[curRowIndex + 1], focusableCols[curColIndex]);
+          return new RowCol(focusableRows[curRowIndex + 1], focusableCols[curColIndex]);
         }
       };
 
@@ -13975,11 +13866,11 @@ module.filter('px', function() {
 
         var pageSize = this.bodyContainer.minRowsToRender();
         if (curRowIndex >= focusableRows.length - pageSize) {
-          return new GridRowColumn(focusableRows[focusableRows.length - 1], focusableCols[curColIndex]); //return last row
+          return new RowCol(focusableRows[focusableRows.length - 1], focusableCols[curColIndex]); //return last row
         }
         else {
           //down one page
-          return new GridRowColumn(focusableRows[curRowIndex + pageSize], focusableCols[curColIndex]);
+          return new RowCol(focusableRows[curRowIndex + pageSize], focusableCols[curColIndex]);
         }
       };
 
@@ -13995,11 +13886,11 @@ module.filter('px', function() {
         }
 
         if (curRowIndex === 0) {
-          return new GridRowColumn(curRow, focusableCols[curColIndex]); //return same row
+          return new RowCol(curRow, focusableCols[curColIndex]); //return same row
         }
         else {
           //up one row
-          return new GridRowColumn(focusableRows[curRowIndex - 1], focusableCols[curColIndex]);
+          return new RowCol(focusableRows[curRowIndex - 1], focusableCols[curColIndex]);
         }
       };
 
@@ -14016,11 +13907,11 @@ module.filter('px', function() {
 
         var pageSize = this.bodyContainer.minRowsToRender();
         if (curRowIndex - pageSize < 0) {
-          return new GridRowColumn(focusableRows[0], focusableCols[curColIndex]); //return first row
+          return new RowCol(focusableRows[0], focusableCols[curColIndex]); //return first row
         }
         else {
           //up one page
-          return new GridRowColumn(focusableRows[curRowIndex - pageSize], focusableCols[curColIndex]);
+          return new RowCol(focusableRows[curRowIndex - pageSize], focusableCols[curColIndex]);
         }
       };
       return UiGridCellNav;
@@ -14033,8 +13924,8 @@ module.filter('px', function() {
    *  @description Services for cell navigation features. If you don't like the key maps we use,
    *  or the direction cells navigation, override with a service decorator (see angular docs)
    */
-  module.service('uiGridCellNavService', ['gridUtil', 'uiGridConstants', 'uiGridCellNavConstants', '$q', 'uiGridCellNavFactory', 'GridRowColumn', 'ScrollEvent',
-    function (gridUtil, uiGridConstants, uiGridCellNavConstants, $q, UiGridCellNav, GridRowColumn, ScrollEvent) {
+  module.service('uiGridCellNavService', ['gridUtil', 'uiGridConstants', 'uiGridCellNavConstants', '$q', 'uiGridCellNavFactory', 'RowColFactory', 'ScrollEvent',
+    function (gridUtil, uiGridConstants, uiGridCellNavConstants, $q, UiGridCellNav, RowCol, ScrollEvent) {
 
       var service = {
 
@@ -14143,7 +14034,7 @@ module.filter('px', function() {
                  * @ngdoc function
                  * @name rowColSelectIndex
                  * @methodOf  ui.grid.cellNav.api:PublicApi
-                 * @description returns the index in the order in which the GridRowColumn was selected, returns -1 if the GridRowColumn
+                 * @description returns the index in the order in which the RowCol was selected, returns -1 if the RowCol
                  * isn't selected
                  * @param {object} rowCol the rowCol to evaluate
                  */
@@ -14387,8 +14278,8 @@ module.filter('px', function() {
    </file>
    </example>
    */
-  module.directive('uiGridCellnav', ['gridUtil', 'uiGridCellNavService', 'uiGridCellNavConstants', 'uiGridConstants', 'GridRowColumn', '$timeout', '$compile',
-    function (gridUtil, uiGridCellNavService, uiGridCellNavConstants, uiGridConstants, GridRowColumn, $timeout, $compile) {
+  module.directive('uiGridCellnav', ['gridUtil', 'uiGridCellNavService', 'uiGridCellNavConstants', 'uiGridConstants', 'RowColFactory', '$timeout', '$compile',
+    function (gridUtil, uiGridCellNavService, uiGridCellNavConstants, uiGridConstants, RowCol, $timeout, $compile) {
       return {
         replace: true,
         priority: -150,
@@ -14407,8 +14298,8 @@ module.filter('px', function() {
 
               //Ensure that the object has all of the methods we expect it to
               uiGridCtrl.cellNav.makeRowCol = function (obj) {
-                if (!(obj instanceof GridRowColumn)) {
-                  obj = new GridRowColumn(obj.row, obj.col);
+                if (!(obj instanceof RowCol)) {
+                  obj = new RowCol(obj.row, obj.col);
                 }
                 return obj;
               };
@@ -14447,7 +14338,7 @@ module.filter('px', function() {
                 var rowColSelectIndex = uiGridCtrl.grid.api.cellNav.rowColSelectIndex(rowCol);
 
                 if (grid.cellNav.lastRowCol === null || rowColSelectIndex === -1) {
-                  var newRowCol = new GridRowColumn(row, col);
+                  var newRowCol = new RowCol(row, col);
 
                   grid.api.cellNav.raise.navigate(newRowCol, grid.cellNav.lastRowCol);
                   grid.cellNav.lastRowCol = newRowCol;
@@ -14779,8 +14670,8 @@ module.filter('px', function() {
    *  @restrict A
    *  @description Stacks on top of ui.grid.uiGridCell to provide cell navigation
    */
-  module.directive('uiGridCell', ['$timeout', '$document', 'uiGridCellNavService', 'gridUtil', 'uiGridCellNavConstants', 'uiGridConstants', 'GridRowColumn',
-    function ($timeout, $document, uiGridCellNavService, gridUtil, uiGridCellNavConstants, uiGridConstants, GridRowColumn) {
+  module.directive('uiGridCell', ['$timeout', '$document', 'uiGridCellNavService', 'gridUtil', 'uiGridCellNavConstants', 'uiGridConstants', 'RowColFactory',
+    function ($timeout, $document, uiGridCellNavService, gridUtil, uiGridCellNavConstants, uiGridConstants, RowCol) {
       return {
         priority: -150, // run after default uiGridCell directive and ui.grid.edit uiGridCell
         restrict: 'A',
@@ -14805,7 +14696,7 @@ module.filter('px', function() {
 
           // When a cell is clicked, broadcast a cellNav event saying that this row+col combo is now focused
           $elm.find('div').on('click', function (evt) {
-            uiGridCtrl.cellNav.broadcastCellNav(new GridRowColumn($scope.row, $scope.col), evt.ctrlKey || evt.metaKey, evt);
+            uiGridCtrl.cellNav.broadcastCellNav(new RowCol($scope.row, $scope.col), evt.ctrlKey || evt.metaKey, evt);
 
             evt.stopPropagation();
             $scope.$apply();
@@ -14843,7 +14734,7 @@ module.filter('px', function() {
 
           //You can only focus on elements with a tabindex value
           $elm.on('focus', function (evt) {
-            uiGridCtrl.cellNav.broadcastCellNav(new GridRowColumn($scope.row, $scope.col), false, evt);
+            uiGridCtrl.cellNav.broadcastCellNav(new RowCol($scope.row, $scope.col), false, evt);
             evt.stopPropagation();
             $scope.$apply();
           });
@@ -15376,30 +15267,35 @@ module.filter('px', function() {
             }
 
             var cellNavNavigateDereg = function() {};
-            var viewPortKeyDownDereg = function() {};
 
+            // Bind to keydown events in the render container
+            if (uiGridCtrl && uiGridCtrl.grid.api.cellNav) {
+
+              uiGridCtrl.grid.api.cellNav.on.viewPortKeyDown($scope, function (evt, rowCol) {
+                if (rowCol === null) {
+                  return;
+                }
+
+                if (rowCol.row === $scope.row && rowCol.col === $scope.col && !$scope.col.colDef.enableCellEditOnFocus) {
+                  //important to do this before scrollToIfNecessary
+                  beginEditKeyDown(evt);
+                 // uiGridCtrl.grid.api.core.scrollToIfNecessary(rowCol.row, rowCol.col);
+                }
+
+              });
+            }
 
             var setEditable = function() {
               if ($scope.col.colDef.enableCellEdit && $scope.row.enableCellEdit !== false) {
-                if (!$scope.beginEditEventsWired) { //prevent multiple attachments
-                  registerBeginEditEvents();
-                }
+                registerBeginEditEvents();
               } else {
-                if ($scope.beginEditEventsWired) {
-                  cancelBeginEditEvents();
-                }
+                cancelBeginEditEvents();
               }
             };
 
             setEditable();
 
-            var rowWatchDereg = $scope.$watch('row', function (n, o) {
-              if (n !== o) {
-                setEditable();
-              }
-            });
-
-
+            var rowWatchDereg = $scope.$watch( 'row', setEditable );
             $scope.$on( '$destroy', rowWatchDereg );
 
             function registerBeginEditEvents() {
@@ -15409,23 +15305,9 @@ module.filter('px', function() {
               $elm.on('touchstart', touchStart);
 
               if (uiGridCtrl && uiGridCtrl.grid.api.cellNav) {
-
-                viewPortKeyDownDereg = uiGridCtrl.grid.api.cellNav.on.viewPortKeyDown($scope, function (evt, rowCol) {
-                  if (rowCol === null) {
-                    return;
-                  }
-
-                  if (rowCol.row === $scope.row && rowCol.col === $scope.col && !$scope.col.colDef.enableCellEditOnFocus) {
-                    //important to do this before scrollToIfNecessary
-                    beginEditKeyDown(evt);
-                  }
-                });
-
                 cellNavNavigateDereg = uiGridCtrl.grid.api.cellNav.on.navigate($scope, function (newRowCol, oldRowCol) {
                   if ($scope.col.colDef.enableCellEditOnFocus) {
-                    // Don't begin edit if the cell hasn't changed
-                    if ((!oldRowCol || newRowCol.row !== oldRowCol.row || newRowCol.col !== oldRowCol.col) &&
-                      newRowCol.row === $scope.row && newRowCol.col === $scope.col) {
+                    if (newRowCol.row === $scope.row && newRowCol.col === $scope.col) {
                       $timeout(function () {
                         beginEdit();
                       });
@@ -15434,7 +15316,7 @@ module.filter('px', function() {
                 });
               }
 
-              $scope.beginEditEventsWired = true;
+
 
             }
 
@@ -15471,8 +15353,6 @@ module.filter('px', function() {
               $elm.off('keydown', beginEditKeyDown);
               $elm.off('touchstart', touchStart);
               cellNavNavigateDereg();
-              viewPortKeyDownDereg();
-              $scope.beginEditEventsWired = false;
             }
 
             function beginEditKeyDown(evt) {
@@ -17260,11 +17140,7 @@ module.filter('px', function() {
           if ( colTypes === uiGridExporterConstants.ALL ){
             columns = grid.columns;
           } else {
-            var leftColumns = grid.renderContainers.left ? grid.renderContainers.left.visibleColumnCache.filter( function( column ){ return column.visible; } ) : [];
-            var bodyColumns = grid.renderContainers.body ? grid.renderContainers.body.visibleColumnCache.filter( function( column ){ return column.visible; } ) : [];
-            var rightColumns = grid.renderContainers.right ? grid.renderContainers.right.visibleColumnCache.filter( function( column ){ return column.visible; } ) : [];
-
-            columns = leftColumns.concat(bodyColumns,rightColumns);
+            columns = grid.renderContainers.body.visibleColumnCache.filter( function( column ){ return column.visible; } );
           }
 
           columns.forEach( function( gridCol, index ) {
@@ -17346,11 +17222,7 @@ module.filter('px', function() {
           if ( colTypes === uiGridExporterConstants.ALL ){
             columns = grid.columns;
           } else {
-            var leftColumns = grid.renderContainers.left ? grid.renderContainers.left.visibleColumnCache.filter( function( column ){ return column.visible; } ) : [];
-            var bodyColumns = grid.renderContainers.body ? grid.renderContainers.body.visibleColumnCache.filter( function( column ){ return column.visible; } ) : [];
-            var rightColumns = grid.renderContainers.right ? grid.renderContainers.right.visibleColumnCache.filter( function( column ){ return column.visible; } ) : [];
-
-            columns = leftColumns.concat(bodyColumns,rightColumns);
+            columns = grid.renderContainers.body.visibleColumnCache.filter( function( column ){ return column.visible; } );
           }
 
           rows.forEach( function( row, index ) {
@@ -17495,7 +17367,7 @@ module.filter('px', function() {
 
           // IE10+
           if (navigator.msSaveBlob) {
-            return navigator.msSaveOrOpenBlob(
+            return navigator.msSaveBlob(
               new Blob(
                 [exporterOlderExcelCompatibility ? "\uFEFF" : '', csvContent],
                 { type: strMimeType } ),
@@ -18447,7 +18319,7 @@ module.filter('px', function() {
        */
       moveGroupColumns: function( grid, columns, rows ){
         if ( grid.options.moveGroupColumns === false){
-          return columns;
+          return;
         }
 
         columns.forEach( function(column, index){
@@ -19992,8 +19864,8 @@ module.filter('px', function() {
                * used if you're subsequently going to call `dataRemovedTop` or `dataRemovedBottom`
                */
               saveScrollPercentage: function() {
-                grid.infiniteScroll.prevScrollTop = grid.renderContainers.body.prevScrollTop;
-                grid.infiniteScroll.previousVisibleRows = grid.getVisibleRowCount();
+                grid.infiniteScroll.prevScrolltopPercentage = grid.renderContainers.body.prevScrolltopPercentage;
+                grid.infiniteScroll.previousVisibleRows = grid.renderContainers.body.visibleRowCache.length;
               },
 
 
@@ -20170,7 +20042,7 @@ module.filter('px', function() {
         // to be at approximately the row we're currently at
         grid.infiniteScroll.previousVisibleRows = grid.renderContainers.body.visibleRowCache.length;
         grid.infiniteScroll.direction = grid.scrollDirection;
-        delete grid.infiniteScroll.prevScrollTop;
+        delete grid.infiniteScroll.prevScrolltopPercentage;
 
         if (grid.scrollDirection === uiGridConstants.scrollDirection.UP && grid.infiniteScroll.scrollUp ) {
           grid.infiniteScroll.dataLoading = true;
@@ -20206,30 +20078,32 @@ module.filter('px', function() {
       adjustScroll: function(grid){
         var promise = $q.defer();
         $timeout(function () {
-          var newPercentage, viewportHeight, rowHeight, newVisibleRows, oldTop, newTop;
-
-          viewportHeight = grid.getViewportHeight() + grid.headerHeight - grid.renderContainers.body.headerHeight - grid.scrollbarHeight;
-          rowHeight = grid.options.rowHeight;
+          var newPercentage;
 
           if ( grid.infiniteScroll.direction === undefined ){
             // called from initialize, tweak our scroll up a little
             service.adjustInfiniteScrollPosition(grid, 0);
           }
 
-          newVisibleRows = grid.getVisibleRowCount();
+          var newVisibleRows = grid.renderContainers.body.visibleRowCache.length;
+          var oldPercentage, oldTopRow;
+          var halfViewport = grid.getViewportHeight() / grid.options.rowHeight / 2;
 
           if ( grid.infiniteScroll.direction === uiGridConstants.scrollDirection.UP ){
-            oldTop = grid.infiniteScroll.prevScrollTop || 0;
-            newTop = oldTop + (newVisibleRows - grid.infiniteScroll.previousVisibleRows)*rowHeight;
-            service.adjustInfiniteScrollPosition(grid, newTop);
+            oldPercentage = grid.infiniteScroll.prevScrolltopPercentage || 0;
+            oldTopRow = oldPercentage * grid.infiniteScroll.previousVisibleRows;
+            newPercentage = ( newVisibleRows - grid.infiniteScroll.previousVisibleRows + oldTopRow + halfViewport ) / newVisibleRows;
+            service.adjustInfiniteScrollPosition(grid, newPercentage);
             $timeout( function() {
               promise.resolve();
             });
           }
 
           if ( grid.infiniteScroll.direction === uiGridConstants.scrollDirection.DOWN ){
-            newTop = grid.infiniteScroll.prevScrollTop || (grid.infiniteScroll.previousVisibleRows*rowHeight - viewportHeight);
-            service.adjustInfiniteScrollPosition(grid, newTop);
+            oldPercentage = grid.infiniteScroll.prevScrolltopPercentage || 1;
+            oldTopRow = oldPercentage * grid.infiniteScroll.previousVisibleRows;
+            newPercentage = ( oldTopRow - halfViewport ) / newVisibleRows;
+            service.adjustInfiniteScrollPosition(grid, newPercentage);
             $timeout( function() {
               promise.resolve();
             });
@@ -20246,23 +20120,18 @@ module.filter('px', function() {
        * @methodOf ui.grid.infiniteScroll.service:uiGridInfiniteScrollService
        * @description This function fires 'needLoadMoreData' or 'needLoadMoreDataTop' event based on scrollDirection
        * @param {Grid} grid the grid we're working on
-       * @param {number} scrollTop the position through the grid that we want to scroll to
+       * @param {number} percentage the percentage through the grid that we want to scroll to
        * @returns {promise} a promise that is resolved when the scrolling finishes
        */
-      adjustInfiniteScrollPosition: function (grid, scrollTop) {
-        var scrollEvent = new ScrollEvent(grid, null, null, 'ui.grid.adjustInfiniteScrollPosition'),
-          visibleRows = grid.getVisibleRowCount(),
-          viewportHeight = grid.getViewportHeight() + grid.headerHeight - grid.renderContainers.body.headerHeight - grid.scrollbarHeight,
-          rowHeight = grid.options.rowHeight,
-          scrollHeight = visibleRows*rowHeight-viewportHeight;
+      adjustInfiniteScrollPosition: function (grid, percentage) {
+        var scrollEvent = new ScrollEvent(grid, null, null, 'ui.grid.adjustInfiniteScrollPosition');
 
         //for infinite scroll, if there are pages upwards then never allow it to be at the zero position so the up button can be active
-        if (scrollTop === 0 && grid.infiniteScroll.scrollUp) {
-          // using pixels results in a relative scroll, hence we have to use percentage
-          scrollEvent.y = {percentage: 1/scrollHeight};
+        if ( percentage === 0 && grid.infiniteScroll.scrollUp ) {
+          scrollEvent.y = {pixels: 1};
         }
         else {
-          scrollEvent.y = {percentage: scrollTop/scrollHeight};
+          scrollEvent.y = {percentage: percentage};
         }
         grid.scrollContainers('', scrollEvent);
       },
@@ -20284,18 +20153,17 @@ module.filter('px', function() {
        * @returns {promise} a promise that is resolved when the scrolling finishes
        */
       dataRemovedTop: function( grid, scrollUp, scrollDown ) {
-        var newVisibleRows, oldTop, newTop, rowHeight;
         service.setScrollDirections( grid, scrollUp, scrollDown );
 
-        newVisibleRows = grid.renderContainers.body.visibleRowCache.length;
-        oldTop = grid.infiniteScroll.prevScrollTop;
-        rowHeight = grid.options.rowHeight;
+        var newVisibleRows = grid.renderContainers.body.visibleRowCache.length;
+        var oldScrollRow = grid.infiniteScroll.prevScrolltopPercentage * grid.infiniteScroll.previousVisibleRows;
 
         // since we removed from the top, our new scroll row will be the old scroll row less the number
         // of rows removed
-        newTop = oldTop - ( grid.infiniteScroll.previousVisibleRows - newVisibleRows )*rowHeight;
+        var newScrollRow = oldScrollRow - ( grid.infiniteScroll.previousVisibleRows - newVisibleRows );
+        var newScrollPercent = newScrollRow / newVisibleRows;
 
-        return service.adjustInfiniteScrollPosition( grid, newTop );
+        return service.adjustInfiniteScrollPosition( grid, newScrollPercent );
       },
 
       /**
@@ -20313,12 +20181,15 @@ module.filter('px', function() {
        * fire infinite scroll events downward
        */
       dataRemovedBottom: function( grid, scrollUp, scrollDown ) {
-        var newTop;
         service.setScrollDirections( grid, scrollUp, scrollDown );
 
-        newTop = grid.infiniteScroll.prevScrollTop;
+        var newVisibleRows = grid.renderContainers.body.visibleRowCache.length;
+        var oldScrollRow = grid.infiniteScroll.prevScrolltopPercentage * grid.infiniteScroll.previousVisibleRows;
 
-        return service.adjustInfiniteScrollPosition( grid, newTop );
+        // since we removed from the bottom, our new scroll row will be same as the old scroll row
+        var newScrollPercent = oldScrollRow / newVisibleRows;
+
+        return service.adjustInfiniteScrollPosition( grid, newScrollPercent );
       }
     };
     return service;
@@ -20405,9 +20276,7 @@ module.filter('px', function() {
         var self = this;
         this.registerPublicApi(grid);
         this.defaultGridOptions(grid.options);
-        grid.moveColumns = {orderCache: []}; // Used to cache the order before columns are rebuilt
         grid.registerColumnBuilder(self.movableColumnBuilder);
-        grid.registerDataChangeCallback(self.verifyColumnOrder, [uiGridConstants.dataChange.COLUMN]);
       },
       registerPublicApi: function (grid) {
         var self = this;
@@ -20517,34 +20386,6 @@ module.filter('px', function() {
           : colDef.enableColumnMoving;
         return $q.all(promises);
       },
-      /**
-       * @ngdoc method
-       * @name updateColumnCache
-       * @methodOf  ui.grid.moveColumns
-       * @description Cache the current order of columns, so we can restore them after new columnDefs are defined
-       */
-      updateColumnCache: function(grid){
-        grid.moveColumns.orderCache = grid.getOnlyDataColumns();
-      },
-      /**
-       * @ngdoc method
-       * @name verifyColumnOrder
-       * @methodOf  ui.grid.moveColumns
-       * @description dataChangeCallback which uses the cached column order to restore the column order
-       * when it is reset by altering the columnDefs array.
-       */
-      verifyColumnOrder: function(grid){
-        var headerRowOffset = grid.rowHeaderColumns.length;
-        var newIndex;
-
-        angular.forEach(grid.moveColumns.orderCache, function(cacheCol, cacheIndex){
-          newIndex = grid.columns.indexOf(cacheCol);
-          if ( newIndex !== -1 && newIndex - headerRowOffset !== cacheIndex ){
-            var column = grid.columns.splice(newIndex, 1)[0];
-            grid.columns.splice(cacheIndex + headerRowOffset, 0, column);
-          }
-        });
-      },
       redrawColumnAtPosition: function (grid, originalPosition, newPosition) {
 
         var columns = grid.columns;
@@ -20562,7 +20403,6 @@ module.filter('px', function() {
             }
           }
           columns[newPosition] = originalColumn;
-          service.updateColumnCache(grid);
           grid.queueGridRefresh();
           $timeout(function () {
             grid.api.core.notifyDataChange( uiGridConstants.dataChange.COLUMN );
@@ -21273,7 +21113,7 @@ module.filter('px', function() {
           var deregT = $scope.$watch('grid.options.totalItems + grid.options.paginationPageSize', setShowing);
 
           var deregP = $scope.$watch('grid.options.paginationCurrentPage + grid.options.paginationPageSize', function (newValues, oldValues) {
-              if (newValues === oldValues || oldValues === undefined) {
+              if (newValues === oldValues) {
                 return;
               }
 
@@ -22028,7 +21868,6 @@ module.filter('px', function() {
 
           // check we're not outside the allowable bounds for this column
           col.width = constrainWidth(col, newWidth);
-          col.hasCustomWidth = true;
 
           refreshCanvas(xDiff);
 
@@ -22141,7 +21980,6 @@ module.filter('px', function() {
 
           // check we're not outside the allowable bounds for this column
           col.width = constrainWidth(col, maxWidth);
-          col.hasCustomWidth = true;
 
           refreshCanvas(xDiff);
 
@@ -26569,7 +26407,7 @@ angular.module('ui.grid').run(['$templateCache', function($templateCache) {
 
 
   $templateCache.put('ui-grid/uiGridRenderContainer',
-    "<div role=\"grid\" ui-grid-one-bind-id-grid=\"'grid-container'\" class=\"ui-grid-render-container\" ng-style=\"{ 'margin-left': colContainer.getMargin('left') + 'px', 'margin-right': colContainer.getMargin('right') + 'px' }\"><!-- All of these dom elements are replaced in place --><div ui-grid-header></div><div ui-grid-viewport></div><div ng-if=\"colContainer.needsHScrollbarPlaceholder()\" class=\"ui-grid-scrollbar-placeholder\" ng-style=\"{height:colContainer.grid.scrollbarHeight + 'px'}\"></div><ui-grid-footer ng-if=\"grid.options.showColumnFooter\"></ui-grid-footer></div>"
+    "<div role=\"grid\" ui-grid-one-bind-id-grid=\"'grid-container'\" class=\"ui-grid-render-container\" ng-style=\"{ 'margin-left': colContainer.getMargin('left') + 'px', 'margin-right': colContainer.getMargin('right') + 'px' }\"><!-- All of these dom elements are replaced in place --><div ui-grid-header></div><div ui-grid-viewport></div><div ng-if=\"colContainer.needsHScrollbarPlaceholder()\" class=\"ui-grid-scrollbar-placeholder\" style=\"height:{{colContainer.grid.scrollbarHeight}}px\"></div><ui-grid-footer ng-if=\"grid.options.showColumnFooter\"></ui-grid-footer></div>"
   );
 
 
