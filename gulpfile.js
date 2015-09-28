@@ -55,6 +55,7 @@ gulp.task('vendor', function () {
         'components/angular-schema-form/dist/schema-form.min.js',
         //'components/angular-schema-form-datepicker/bootstrap-datepicker.js',
         //'components/angular-schema-form-datepicker/bootstrap-datepicker.min.js',
+        'components/angular-ui-tinymce/src/tinymce.js',
         'components/angular-bootstrap-datetimepicker/src/js/datetimepicker.js',
         'components/es5-shim/es5-sham.js',
         'components/es5-shim/es5-sham.map',
